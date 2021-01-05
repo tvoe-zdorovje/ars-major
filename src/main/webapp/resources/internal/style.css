@@ -1,0 +1,165 @@
+.navbar-dark {
+    background-image: repeating-linear-gradient(rgba(50, 50, 50, 1), rgba(50, 50, 50, 0.4) 100%, rgba(0, 0, 0, 0));
+}
+
+body {
+    background-color: rgb(245, 245, 245);
+    background-image: url("images/texture.png");
+    padding: 0;
+}
+
+#top-carousel {
+    /*if high size pictures are not exist*/
+    /*padding: 0;*/
+    /*padding: 0 calc(100% - 1660px);*/
+}
+
+
+.carousel-picture {
+    filter: brightness(60%);
+}
+
+.card-title {
+    margin: auto;
+    font-size: 2.6vw;
+    /*font-style: italic;*/
+    line-height: 1;
+    color: rgb(243, 210, 137);
+    text-shadow: 0.1rem 0.1rem 1px black, 0 0 0.6em dimgray;
+
+    font-family: serif;
+}
+
+.card-img {
+    filter: brightness(80%);
+}
+
+.logo {
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translate(-15%, -60%);
+    width: 140%
+}
+
+
+#description-container {
+    background-color: rgba(245, 245, 245, 0.5);
+    padding-top: 8%;
+}
+
+.description-body > p {
+    text-indent: 20px;
+}
+
+
+footer {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: rgb(233, 233, 233);
+}
+
+#callback-container {
+    background-color: rgba(0, 0, 0, 0.35);
+}
+
+
+.img-thumbnail {
+    padding: 0.4rem;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+!important;
+}
+
+.zoomable:hover {
+    box-shadow: 0 0 8px 1px rgba(0, 140, 186, 0.5);
+    cursor: zoom-in;
+}
+
+/* https://stackoverflow.com/questions/15167545/how-to-crop-a-rectangular-image-into-a-square-with-css#answer-55966300 */
+.img-container {
+    /*position: relative;*/
+}
+
+.img-container::after {
+    content: "";
+    display: block;
+    padding-bottom: 100%;
+}
+
+.gallery-img {
+    position: absolute;
+
+    /*anti-stick right for small screen*/
+    top: 6px;
+    left: 6px;
+
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    border: .05rem groove rgba(255, 255, 255, 0.3);
+    border-radius: 0.15rem;
+}
+
+
+.modal-body, .modal-content {
+    padding: 0 !important;
+    background-color: rgba(0, 0, 0, 0);
+    border: 0;
+}
+
+.modal {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+.invert {
+    filter: invert(1);
+}
+
+
+#body {
+    padding: 0;
+}
+
+
+@media screen and (min-width: 960px) {
+    .description-body {
+        font-size: 18px;
+    }
+
+    .description-title {
+        font-size: 42px;
+    }
+
+    .card-title {
+        font-size: 2.4vw;
+        text-shadow: 0.2rem 0.2rem 2px black, 0 0 0.6em dimgray;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .description-body {
+        font-size: 14px;
+    }
+
+    .card-title {
+        font-weight: 600;
+    }
+}
+
+@media screen and (min-width: 1920px) {
+    #body {
+        padding: 0 calc(calc(100% - 1920px) / 2);
+    }
+
+    .card-title {
+        font-size: 46px;
+        text-shadow: 3px 3px 2px black, 0 0 20px dimgray;
+    }
+
+    #description-container {
+        padding-top: 140px;
+    }
+}

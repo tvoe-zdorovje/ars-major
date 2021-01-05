@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>by.tvoe-zdorovje</groupId>
+    <artifactId>ars-major</artifactId>
+    <version>v1</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <appengine.app.version>1</appengine.app.version>
+        <appengine.target.version>1.9.84</appengine.target.version>
+        <appengine-maven-plugin-version>2.4.0</appengine-maven-plugin-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>1.113.8</version>
+        </dependency>
+            <dependency>
+                <groupId>com.mailjet</groupId>
+                <artifactId>mailjet-client</artifactId>
+                <version>4.2.0</version>
+            </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>appengine-maven-plugin</artifactId>
+                <version>${appengine-maven-plugin-version}</version>
+                <configuration>
+                    <deploy.projectId>ars-major</deploy.projectId>
+                    <deploy.version>v1</deploy.version>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>
