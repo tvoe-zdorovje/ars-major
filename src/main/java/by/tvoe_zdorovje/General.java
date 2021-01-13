@@ -16,17 +16,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class General extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger("General");
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        LOGGER.info("[GET] Forward ars+major.jsp");
         req.getRequestDispatcher("/WEB-INF/ars_major.jsp").forward(req, resp);
     }
 
     // https://stackoverflow.com/questions/50791064/cant-read-multipart-data-from-httpservletrequest-in-servlet-3-0
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        LOGGER.info("[POST] send email request");
         resp.setCharacterEncoding("UTF-8");
         try {
             Map<String, String> fields = new HashMap<>();
@@ -54,7 +60,7 @@ public class General extends HttpServlet {
             Postman.sendEmail(fields, files);
         } catch (Exception e) {
             resp.sendError(500, "Что-то пошло не так...");
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "[POST] code = 500. ", e);
         }
     }
 }

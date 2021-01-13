@@ -13,8 +13,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class StorageManager {
+    private static final Logger LOGGER = Logger.getLogger("StorageManager");
+
     private static final String STORAGE_HOST = "https://storage.cloud.google.com/";
     private static final String PROJECT_ID = "ars-major";
     private static final String BUCKET_NAME = "ars-major.appspot.com"; // host
@@ -42,13 +45,16 @@ public class StorageManager {
     }
 
     public static Map<String, String> getMailjetData() {
+        LOGGER.info("Get mailjet metadata.");
         return bucket.get("mailjet").getMetadata();
     }
 
     public static String getResourceList(String resource) {
+        LOGGER.info("[GET] resources " + resource);
+
         String cached = CACHE.get(resource);
         if (null != cached && !cached.isBlank()) {
-            System.out.println("get [" + resource + "] from cache");
+            LOGGER.info("get [" + resource + "] from cache");
             return cached;
         }
 

@@ -37,6 +37,11 @@
             <artifactId>google-cloud-storage</artifactId>
             <version>1.113.8</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-logging</artifactId>
+            <version>2.1.2</version>
+        </dependency>
             <dependency>
                 <groupId>com.mailjet</groupId>
                 <artifactId>mailjet-client</artifactId>

@@ -2,9 +2,7 @@
 target
 
 # Photo
-a-p-*.jpg
-d-p-*.jpg
-b-r-*.jpg
+/src/main/webapp/resources/images/
 
 #gapi token
 ars-major-token.json
