@@ -13,9 +13,10 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Map;
 
+import static by.tvoe_zdorovje.StorageManager.*;
+
 public class Postman {
-    private static final Map<String, String> mailjetData = StorageManager.getMailjetData();
-    private static final MailjetClient client = new MailjetClient(mailjetData.get("MJ_KEY"), mailjetData.get("MJ_VALUE"), new ClientOptions("v3.1"));
+    private static final MailjetClient client = new MailjetClient(getMailjetKey(), getMailjetValue(), new ClientOptions("v3.1"));
 
     private static final String HTML_BODY_TEMPLATE =
             "<h3>Новое сообщение с сайта arsmajor.by</h3><br><br><h4>Имя: <b>name</b><br>Телефон: <b>phone</b><br>Сообщение:</h4><br>message";
@@ -41,11 +42,11 @@ public class Postman {
 
         JSONObject message = new JSONObject()
                 .put(Emailv31.Message.FROM, new JSONObject()
-                        .put("Email", mailjetData.get("FROM"))
+                        .put("Email", getMailjetFrom())
                         .put("Name", "arsmajor.by"))
                 .put(Emailv31.Message.TO, new JSONArray()
                         .put(new JSONObject()
-                                .put("Email", mailjetData.get("TO"))
+                                .put("Email", getMailjetTo())
                                 .put("Name", "Roma")))
                 .put(Emailv31.Message.SUBJECT, "[arsmajor.by] Новое сообщение")
                 .put(Emailv31.Message.HTMLPART, HTML);

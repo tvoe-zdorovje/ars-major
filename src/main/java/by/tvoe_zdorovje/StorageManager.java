@@ -7,8 +7,18 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.mailjet.client.Base64;
+import org.json.JSONObject;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,14 +28,15 @@ import java.util.logging.Logger;
 public class StorageManager {
     private static final Logger LOGGER = Logger.getLogger("StorageManager");
 
-    private static final String STORAGE_HOST = "https://storage.cloud.google.com/";
+    private static final String STORAGE_HOST = "https://storage.googleapis.com/";
     private static final String PROJECT_ID = "ars-major";
     private static final String BUCKET_NAME = "ars-major.appspot.com"; // host
-    public static final String BUCKET_URL = STORAGE_HOST + BUCKET_NAME;
+    private static final String BUCKET_URL = STORAGE_HOST + BUCKET_NAME;
 
     private static Bucket bucket;
 
     private static final Map<String, String> CACHE = new HashMap<>();
+    private static final Map<String, String> ENV_VARs = new HashMap<>();
 
     static {
         try {
@@ -37,16 +48,12 @@ public class StorageManager {
         }
     }
 
-    // FIXME debug cache
-    static {
-        CACHE.put("resource/images/art-painting/", "[\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-1.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-10.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-11.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-12.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-13.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-14.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-15.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-16.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-17.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-18.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-2.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-3.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-4.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-5.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-6.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-7.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-8.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/art-painting/a-p-9.jpg\"]");
-        CACHE.put("resource/images/dec-plaster/", "[\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-1.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-10.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-11.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-2.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-3.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-4.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-5.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-6.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-7.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-8.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/dec-plaster/d-p-9.jpg\"]");
-        CACHE.put("resource/images/bas-relief/", "[\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-1.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-10.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-11.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-12.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-13.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-14.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-15.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-2.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-3.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-4.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-5.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-6.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-7.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-8.jpg\",\"https://storage.cloud.google.com/ars-major.appspot.com/resources/images/bas-relief/b-r-9.jpg\"]");
-    }
-
-    public static Map<String, String> getMailjetData() {
-        LOGGER.info("Get mailjet metadata.");
-        return bucket.get("mailjet").getMetadata();
+    private static Map<String, String> getEnvVars() {
+        if (ENV_VARs.size() == 0) {
+            LOGGER.info("Get ENV_VARs metadata.");
+            ENV_VARs.putAll(bucket.get("ENV_VARs").getMetadata());
+        }
+        return ENV_VARs;
     }
 
     public static String getResourceList(String resource) {
@@ -66,7 +73,7 @@ public class StorageManager {
         blobPage.getValues().forEach(blob -> {
             String URL = blob.getName();
             if (!URL.contains("carousel-")) {
-                URLs.add("\"" + BUCKET_URL + "/" + URL + "\"");
+                URLs.add("\"" + blob.getMediaLink() + "\""); // FIXME resources
             }
         });
 
@@ -74,5 +81,74 @@ public class StorageManager {
         CACHE.put(resource, jsonURLs);
 
         return jsonURLs;
+    }
+
+    public static void uploadResources(String theme, List<JSONObject> files) throws InterruptedException, IOException {
+        LOGGER.info("Upload resources.");
+        StringBuilder filenameBuilder = new StringBuilder("resources/images/")
+                .append(theme)
+                .append("/");
+
+        String prefix = filenameBuilder.toString();
+
+        String path = StorageManager.class.getResource("").getPath();
+        path = path.substring(0, path.indexOf("WEB-INF"));
+        File watermark = new File(path + "resources/internal/images/watermark.png");
+        for (JSONObject file : files) {
+            byte[] bytes = addWatermark(Base64.decode(file.getString("Base64Content")), watermark);
+
+            filenameBuilder.append(theme)
+                    .append("-");
+            LocalDate date = LocalDate.now(ZoneOffset.ofHours(3)); // UTC+3
+            filenameBuilder.append(date).append("-").append(System.currentTimeMillis() % 10000000);
+
+            bucket.create(filenameBuilder.toString(), bytes, file.getString("ContentType"));
+            Thread.sleep(2);
+        }
+
+        CACHE.remove(prefix);
+    }
+
+    private static byte[] addWatermark(byte[] fileBytes, File watermarkFile) throws IOException {
+        LOGGER.info("\tAdd watermark");
+
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(fileBytes));
+        BufferedImage watermark = ImageIO.read(watermarkFile);
+
+        Graphics2D g2d = (Graphics2D) image.getGraphics();
+        AlphaComposite alphaChannel = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
+        g2d.setComposite(alphaChannel);
+
+        g2d.drawImage(watermark, 0, 0, null);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", baos);
+        g2d.dispose();
+
+        return baos.toByteArray();
+    }
+
+    public static String getBucketUrl() {
+        return BUCKET_URL;
+    }
+
+    public static String getPassword() {
+        return getEnvVars().get("PASS");
+    }
+
+    public static String getMailjetKey() {
+        return getEnvVars().get("MJ_KEY");
+    }
+
+    public static String getMailjetValue() {
+        return getEnvVars().get("MJ_VALUE");
+    }
+
+    public static String getMailjetFrom() {
+        return getEnvVars().get("MJ_FROM");
+    }
+
+    public static String getMailjetTo() {
+        return getEnvVars().get("MJ_TO");
     }
 }

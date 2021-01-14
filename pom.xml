@@ -42,11 +42,16 @@
             <artifactId>google-cloud-logging</artifactId>
             <version>2.1.2</version>
         </dependency>
-            <dependency>
-                <groupId>com.mailjet</groupId>
-                <artifactId>mailjet-client</artifactId>
-                <version>4.2.0</version>
-            </dependency>
+        <dependency>
+            <groupId>com.mailjet</groupId>
+            <artifactId>mailjet-client</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
     <build>

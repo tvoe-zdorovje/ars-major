@@ -40,5 +40,5 @@
     <script src="${pageContext.request.contextPath}/resources/internal/bs4/bootstrap.min.js" defer></script>
     <script src="${pageContext.request.contextPath}/resources/internal/jquery/noty/noty.min.js" defer></script>
     <script src="${pageContext.request.contextPath}/resources/internal/front-end.js" defer></script>
-    <script src="${pageContext.request.contextPath}/resources/internal/back-end.js" defer></script>
+    <script src="${pageContext.request.contextPath}/resources/internal/postman.js" defer></script>
 </head>

@@ -17,22 +17,24 @@ public class ResourceResolver extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         String resource = req.getServletPath() + req.getPathInfo();
 
-        LOGGER.info("[GET] resources: " + resource);
+        LOGGER.info("[GET] resource: " + resource);
 
-        if (resource.endsWith("/")) { // is folder
-            resp.setContentType("application/json");
+        try {
+            if (resource.endsWith("/")) { // is folder
+                resp.setContentType("application/json");
 
-            try (PrintWriter writer = resp.getWriter();) {
-                String jsonResourceList = StorageManager.getResourceList(resource.substring(1));
-                writer.write(jsonResourceList);
-            } catch (Exception e) {
-                resp.sendError(500, "Что-то пошло не так...");
-                LOGGER.log(Level.WARNING, "[POST] code = 500. ", e);
+                try (PrintWriter writer = resp.getWriter();) {
+                    String jsonResourceList = StorageManager.getResourceList(resource.substring(1));
+                    writer.write(jsonResourceList);
+                }
+            } else {
+                String location = StorageManager.getBucketUrl() + resource;
+                resp.setHeader("Cache-Control","public");
+                resp.sendRedirect(location);
             }
-        } else {
-            String location = StorageManager.BUCKET_URL + resource;
-            LOGGER.info("Redirect to " + location);
-            resp.sendRedirect(location);
+        } catch (Exception e) {
+            resp.sendError(500, "Что-то пошло не так...");
+            LOGGER.log(Level.WARNING, "[POST] code = 500. ", e);
         }
     }
 }
