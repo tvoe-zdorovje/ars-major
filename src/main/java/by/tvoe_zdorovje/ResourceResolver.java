@@ -17,7 +17,7 @@ public class ResourceResolver extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         String resource = req.getServletPath() + req.getPathInfo();
 
-        LOGGER.info("[GET] resource: " + resource);
+        LOGGER.info("[GET] request: " + resource);
 
         try {
             if (resource.endsWith("/")) { // is folder
@@ -32,7 +32,7 @@ public class ResourceResolver extends HttpServlet {
             }
         } catch (Exception e) {
             resp.sendError(500, "Что-то пошло не так...");
-            LOGGER.log(Level.WARNING, "[POST] code = 500. ", e);
+            LOGGER.log(Level.WARNING, "Something went wrong.", e);
         }
     }
 }

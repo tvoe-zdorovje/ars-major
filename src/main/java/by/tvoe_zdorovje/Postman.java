@@ -12,10 +12,13 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static by.tvoe_zdorovje.StorageManager.*;
 
 public class Postman {
+    private static final Logger LOGGER = Logger.getLogger("Postman");
+
     private static final MailjetClient client = new MailjetClient(getMailjetKey(), getMailjetValue(), new ClientOptions("v3.1"));
 
     private static final String HTML_BODY_TEMPLATE =
@@ -23,6 +26,8 @@ public class Postman {
 
     // https://dev.mailjet.com/email/guides/send-api-v31/#send-with-attached-files
     public static void sendEmail(Map<String, String> fields, List<JSONObject> files) throws MailjetSocketTimeoutException, MailjetException {
+        LOGGER.info("Send e-mail.");
+
         MailjetRequest request = new MailjetRequest(Emailv31.resource)
                 .property(Emailv31.MESSAGES, new JSONArray()
                         .put(buildMessage(fields, files)));
@@ -34,6 +39,8 @@ public class Postman {
     }
 
     private static JSONObject buildMessage(Map<String, String> fields, List<JSONObject> files) {
+        LOGGER.info("Build body.");
+
         String HTML = HTML_BODY_TEMPLATE;
 
         for (Map.Entry<String, String> entry : fields.entrySet()) {

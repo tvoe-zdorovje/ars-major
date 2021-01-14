@@ -38,6 +38,8 @@ public class StorageManager {
 
     static {
         try {
+            LOGGER.info("[GET] init bucket");
+
             Credentials credentials = GoogleCredentials.getApplicationDefault();
             Storage storage = StorageOptions.newBuilder().setCredentials(credentials).setProjectId(PROJECT_ID).build().getService();
             bucket = storage.get(BUCKET_NAME);
@@ -48,14 +50,14 @@ public class StorageManager {
 
     private static Map<String, String> getEnvVars() {
         if (ENV_VARs.size() == 0) {
-            LOGGER.info("Get ENV_VARs metadata.");
+            LOGGER.info("Load ENV_VARs metadata.");
             ENV_VARs.putAll(bucket.get("ENV_VARs").getMetadata());
         }
         return ENV_VARs;
     }
 
     public static String getMediaLinks(String resource) {
-        LOGGER.info("[GET] resources " + resource);
+        LOGGER.info("[GET] media links: " + resource);
 
         String cached = CACHE.get(resource);
         if (null != cached && !cached.isBlank()) {
@@ -88,15 +90,16 @@ public class StorageManager {
         return jsonLinks;
     }
 
+    // not expected
     public static String getMediaLink(String resource) {
-        LOGGER.info("[GET] resource " + resource);
+        LOGGER.info("[GET] media links: " + resource);
         Blob blob = bucket.get(resource);
         return blob.getMediaLink();
     }
 
     // TODO implement compression
     public static void uploadResources(String theme, List<JSONObject> files) throws InterruptedException, IOException {
-        LOGGER.info("Upload resources.");
+        LOGGER.info("Upload resources..");
         StringBuilder filenameBuilder = new StringBuilder("resources/images/")
                 .append(theme)
                 .append("/");
