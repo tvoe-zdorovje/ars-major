@@ -21,7 +21,7 @@
                         <div class="col p-0 card bg-dark text-white shadow-lg active switch" role="button"
                              id="art-painting-card"
                              style="width: 18rem;">
-                            <img src="${pageContext.request.contextPath}/resources/images/art-painting/carousel-1.jpg"
+                            <img src=""
                                  class="card-img darkened-pic-80"
                                  alt="art-painting button">
                             <div class="card-img-overlay p-0 d-flex align-items-center">
@@ -31,7 +31,7 @@
                         <div class="col p-0 card bg-dark text-white shadow-lg switch" role="button"
                              id="dec-plaster-card"
                              style="width: 18rem;">
-                            <img src="${pageContext.request.contextPath}/resources/images/dec-plaster/carousel-1.jpg"
+                            <img src=""
                                  class="card-img darkened-pic-80"
                                  alt="dec-plaster button">
                             <div class="card-img-overlay p-0 d-flex align-items-center">
@@ -40,7 +40,7 @@
                         </div>
                         <div class="col p-0 card bg-dark text-white shadow-lg switch" role="button" id="bas-relief-card"
                              style="width: 18rem;">
-                            <img src="${pageContext.request.contextPath}/resources/images/bas-relief/carousel-1.jpg"
+                            <img src=""
                                  class="card-img darkened-pic-80"
                                  alt="bas-relief button">
                             <div class="card-img-overlay p-0 d-flex align-items-center">
@@ -52,22 +52,8 @@
             </div>
             <!-- IMAGES -->
             <div class="carousel-inner border border-top-0 border-dark shadow-lg">
-                <div class="carousel-item active">
-                    <img src="${pageContext.request.contextPath}/resources/images/art-painting/carousel-1.jpg"
-                         class="d-block w-100 carousel-picture" alt="фото">
-                    <div class="position-absolute text-center logo">
-                        <img src="${pageContext.request.contextPath}/resources/internal/images/logo.png" class="d-block w-100" alt="Ars Major">
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <img src="${pageContext.request.contextPath}/resources/images/art-painting/carousel-2.jpg"
-                         class="d-block w-100 carousel-picture" alt="фото">
-                    <div class="position-absolute text-center logo">
-                        <img src="${pageContext.request.contextPath}/resources/internal/images/logo.png" class="d-block w-100" alt="Ars Major">
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <img src="${pageContext.request.contextPath}/resources/images/art-painting/carousel-3.jpg"
+                <div class="template d-none">
+                    <img src=""
                          class="d-block w-100 carousel-picture" alt="фото">
                     <div class="position-absolute text-center logo">
                         <img src="${pageContext.request.contextPath}/resources/internal/images/logo.png" class="d-block w-100" alt="Ars Major">
@@ -79,7 +65,6 @@
 
 
     <div class="container" id="description-container">
-        <!--    <br><br><br><br><br><br>-->
         <div id="art-painting" class="description">
             <h2 class="description-title text-center">Художественная роспись</h2>
             <div class="description-body mt-3 mt-md-4 mt-xl-5">

@@ -23,14 +23,12 @@ public class ResourceResolver extends HttpServlet {
             if (resource.endsWith("/")) { // is folder
                 resp.setContentType("application/json");
 
-                try (PrintWriter writer = resp.getWriter();) {
-                    String jsonResourceList = StorageManager.getResourceList(resource.substring(1));
+                try (PrintWriter writer = resp.getWriter()) {
+                    String jsonResourceList = StorageManager.getMediaLinks(resource.substring(1));
                     writer.write(jsonResourceList);
                 }
             } else {
-                String location = StorageManager.getBucketUrl() + resource;
-                resp.setHeader("Cache-Control","public");
-                resp.sendRedirect(location);
+                resp.sendRedirect(StorageManager.getMediaLink(resource.substring(1)));
             }
         } catch (Exception e) {
             resp.sendError(500, "Что-то пошло не так...");

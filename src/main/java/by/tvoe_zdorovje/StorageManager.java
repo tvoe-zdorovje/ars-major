@@ -28,14 +28,12 @@ import java.util.logging.Logger;
 public class StorageManager {
     private static final Logger LOGGER = Logger.getLogger("StorageManager");
 
-    private static final String STORAGE_HOST = "https://storage.googleapis.com/";
     private static final String PROJECT_ID = "ars-major";
     private static final String BUCKET_NAME = "ars-major.appspot.com"; // host
-    private static final String BUCKET_URL = STORAGE_HOST + BUCKET_NAME;
 
     private static Bucket bucket;
 
-    private static final Map<String, String> CACHE = new HashMap<>();
+    private static final Map<String, String> CACHE = new HashMap<>(5);
     private static final Map<String, String> ENV_VARs = new HashMap<>();
 
     static {
@@ -56,7 +54,7 @@ public class StorageManager {
         return ENV_VARs;
     }
 
-    public static String getResourceList(String resource) {
+    public static String getMediaLinks(String resource) {
         LOGGER.info("[GET] resources " + resource);
 
         String cached = CACHE.get(resource);
@@ -67,22 +65,36 @@ public class StorageManager {
 
         Page<Blob> blobPage = bucket.list(Storage.BlobListOption.prefix(resource));
 
-        int initCapacity = 125; // average number of images for the near future [ 01-2021 ] ( real 100 )
-        List<String> URLs = new ArrayList<>(initCapacity);
+        int initCapacity = 125; // average number of images for the near future [ 01-2021 ] ( actual ~100 )
+        ArrayList<String> carouselLinks = new ArrayList<>();
+        ArrayList<String> galleryLinks = new ArrayList<>(initCapacity);
+
+        Map<String, List<String>> links = new HashMap<>();
+        links.put("carousel", carouselLinks);
+        links.put("gallery", galleryLinks);
 
         blobPage.getValues().forEach(blob -> {
             String URL = blob.getName();
-            if (!URL.contains("carousel-")) {
-                URLs.add("\"" + blob.getMediaLink() + "\""); // FIXME resources
+            if (URL.contains("carousel-")) {
+                carouselLinks.add(blob.getMediaLink());
+            } else {
+                galleryLinks.add(blob.getMediaLink());
             }
         });
 
-        String jsonURLs = "[" + String.join(",", URLs) + "]";
-        CACHE.put(resource, jsonURLs);
+        String jsonLinks = JSONObject.valueToString(links);
+        CACHE.put(resource, jsonLinks);
 
-        return jsonURLs;
+        return jsonLinks;
     }
 
+    public static String getMediaLink(String resource) {
+        LOGGER.info("[GET] resource " + resource);
+        Blob blob = bucket.get(resource);
+        return blob.getMediaLink();
+    }
+
+    // TODO implement compression
     public static void uploadResources(String theme, List<JSONObject> files) throws InterruptedException, IOException {
         LOGGER.info("Upload resources.");
         StringBuilder filenameBuilder = new StringBuilder("resources/images/")
@@ -102,7 +114,7 @@ public class StorageManager {
             LocalDate date = LocalDate.now(ZoneOffset.ofHours(3)); // UTC+3
             filenameBuilder.append(date).append("-").append(System.currentTimeMillis() % 10000000);
 
-            bucket.create(filenameBuilder.toString(), bytes, file.getString("ContentType"));
+            bucket.create(filenameBuilder.toString(), bytes, file.getString("ContentType"), Bucket.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ));
             Thread.sleep(2);
         }
 
@@ -126,10 +138,6 @@ public class StorageManager {
         g2d.dispose();
 
         return baos.toByteArray();
-    }
-
-    public static String getBucketUrl() {
-        return BUCKET_URL;
     }
 
     public static String getPassword() {
