@@ -12,37 +12,34 @@
 
     <div class="container-fluid p-0">
         <div id="top-carousel" class="carousel slide carousel-fade user-select-none" data-ride="carousel"
-             data-interval="10000">
+             data-interval="5000">
             <!-- CARDS -->
             <div class="carousel-indicators">
                 <div class="container-fluid position-absolute text-center p-0"
                      style="top: 50%; left: 0; right: 0; transform: translateY(-50%);">
                     <div class="row">
-                        <div class="col p-0 card bg-dark text-white shadow-lg active switch" role="button"
-                             id="art-painting-card"
-                             style="width: 18rem;">
+                        <div class="col p-0 card bg-dark text-white shadow-lg switch" role="button"
+                             id="art-painting-card">
                             <img src=""
-                                 class="card-img darkened-pic-80"
-                                 alt="art-painting button">
+                                 class="card-img"
+                                 alt="art-painting">
                             <div class="card-img-overlay p-0 d-flex align-items-center">
                                 <p class="card-title">Художественная роспись</p>
                             </div>
                         </div>
                         <div class="col p-0 card bg-dark text-white shadow-lg switch" role="button"
-                             id="dec-plaster-card"
-                             style="width: 18rem;">
+                             id="dec-plaster-card">
                             <img src=""
-                                 class="card-img darkened-pic-80"
-                                 alt="dec-plaster button">
+                                 class="card-img"
+                                 alt="dec-plaster">
                             <div class="card-img-overlay p-0 d-flex align-items-center">
                                 <p class="card-title">Декоративная Штукатурка</p>
                             </div>
                         </div>
-                        <div class="col p-0 card bg-dark text-white shadow-lg switch" role="button" id="bas-relief-card"
-                             style="width: 18rem;">
+                        <div class="col p-0 card bg-dark text-white shadow-lg switch" role="button" id="bas-relief-card">
                             <img src=""
-                                 class="card-img darkened-pic-80"
-                                 alt="bas-relief button">
+                                 class="card-img"
+                                 alt="bas-relief">
                             <div class="card-img-overlay p-0 d-flex align-items-center">
                                 <p class="card-title">Барельеф</p>
                             </div>

@@ -31,15 +31,22 @@ body {
 }
 
 .card-img {
-    filter: brightness(80%);
+    filter: brightness(75%);
+    height: 100%;
+    object-fit: cover;
+}
+
+.switch {
+    height: 7vw;
+    margin: 0 0.05vw;
 }
 
 .logo {
     top: 50%;
     left: 0;
     right: 0;
-    transform: translate(-15%, -60%);
-    width: 140%
+    transform: translate(0%, -60%);
+    width: 100%
 }
 
 

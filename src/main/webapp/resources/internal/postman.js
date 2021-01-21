@@ -28,6 +28,17 @@ function submitMail() {
 
     if (!validate($phoneField, true) |
         !validate($form.find("#form-message"), false)) return;
+
+    let size = 0;
+    let files = $("#files")[0].files;
+    let numberOfFiles = files.length;
+    for (let i = 0; i < numberOfFiles; i++) {
+        size += files.item(i).size / 1024;
+    }
+    if (size > 10000) {
+        showNoty("error", "Общий размер файлов не должен превышать 10 Мб!")
+        return;
+    }
     // ----------------------------------
 
     send($form)
@@ -79,24 +90,24 @@ function uploadImages($form) {
             send($form);
             return 0;
         }
-            $.ajax({
-                type: "POST",
-                url: window.location.pathname + adminMode,
-                data: $form.find("#form-password").val(),
-                contentType: "plain/text"
+        $.ajax({
+            type: "POST",
+            url: window.location.pathname + adminMode,
+            data: $form.find("#form-password").val(),
+            contentType: "plain/text"
+        })
+            .done(function () {
+                adminMode = "?admin=true"
+                send($form);
             })
-                .done(function () {
-                    adminMode = "?admin=true"
-                    send($form);
-                })
-                .fail(function (xhr) {
-                    let msg;
-                    if (xhr.status === 403)
-                        msg = "Неверный пароль!"
-                    else
-                        msg = "Произошла ошибка!"
-                    showNoty("error", msg);
-                })
+            .fail(function (xhr) {
+                let msg;
+                if (xhr.status === 403)
+                    msg = "Неверный пароль!"
+                else
+                    msg = "Произошла ошибка!"
+                showNoty("error", msg);
+            })
     }
 
     return 0;

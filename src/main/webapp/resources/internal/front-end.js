@@ -3,15 +3,21 @@ let THEMES = {};
 let CURRENT_THEME;
 
 $(function () {
-    init();
-
     $(".switch").click(switchTo);
     $(".zoomable").click(zoomIn);
     $("#gallery-button").click(openGallery);
+    // bug with two modal dialogs
+    $("#picture-viewer").on("hidden.bs.modal", function () {
+        if ($("div.modal-backdrop.fade.show").length) {
+            $("body").addClass("modal-open").attr("style", "padding-right: 15px;");
+        }
+    });
+
+    init();
 });
 
 function init() {
-/* links {"carousel": [], "gallery" = []} */
+    /* links {"carousel": [], "gallery" = []} */
     function loadImageLinks(id) {
         let links;
         let URL = window.location.pathname +
@@ -24,42 +30,50 @@ function init() {
         })
             .done(function (data) {
                 links = data;
-            })
-            .fail(function () {
-                showNoty("error", "Произошла ошибка при загрузке фото");
             });
         return links;
     }
 
-    // ------ create themes ------
-    let art_painting = {};
-    art_painting.id = "art-painting";
-    let links = loadImageLinks(art_painting.id);
-    art_painting.gallery = links.gallery;
-    art_painting.carousel = links.carousel;
+    try {
+        // ------ create themes ------
+        let art_painting = {};
+        art_painting.id = "art-painting";
+        let dec_plaster = {};
+        dec_plaster.id = "dec-plaster";
+        let bas_relief = {};
+        bas_relief.id = "bas-relief";
 
-    let dec_plaster = {};
-    dec_plaster.id = "dec-plaster";
-    links = loadImageLinks(dec_plaster.id);
-    dec_plaster.gallery = links.gallery;
-    dec_plaster.carousel = links.carousel;
+        THEMES.art_painting = art_painting;
+        THEMES.dec_plaster = dec_plaster;
+        THEMES.bas_relief = bas_relief;
 
-    let bas_relief = {};
-    bas_relief.id = "bas-relief";
-    links = loadImageLinks(bas_relief.id);
-    bas_relief.gallery = links.gallery;
-    bas_relief.carousel = links.carousel;
+        // ------ set image links ------
+        let links = loadImageLinks(art_painting.id);
+        art_painting.gallery = links.gallery;
+        art_painting.carousel = links.carousel;
 
-    THEMES.art_painting = art_painting;
-    THEMES.dec_plaster = dec_plaster;
-    THEMES.bas_relief = bas_relief;
+        links = loadImageLinks(dec_plaster.id);
+        dec_plaster.gallery = links.gallery;
+        dec_plaster.carousel = links.carousel;
 
-    // ------ set card images ------
-    $("#art-painting-card img").attr("src", art_painting.carousel[0]);
-    $("#dec-plaster-card img").attr("src", dec_plaster.carousel[0]);
-    $("#bas-relief-card img").attr("src", bas_relief.carousel[0]);
+        links = loadImageLinks(bas_relief.id);
+        bas_relief.gallery = links.gallery;
+        bas_relief.carousel = links.carousel;
 
-    // ------ set theme ------
+
+        // ------ set card images ------
+        $("#art-painting-card img").attr("src", art_painting.carousel[0]);
+        $("#dec-plaster-card img").attr("src", dec_plaster.carousel[0]);
+        $("#bas-relief-card img").attr("src", bas_relief.carousel[0]);
+    } catch (e) {
+        showNoty("error", "Произошла ошибка при загрузке. Пожалуйста, сообщите нам о проблеме.");
+        console.error(e);
+        $("#top-carousel").addClass("mt-5");
+        $("#gallery-button").remove();
+        $("#gallery-carousel").remove();
+    }
+
+// ------ set theme ------
     CURRENT_THEME = THEMES.art_painting;
     refreshTopCarousel();
     refreshGalleryCarousel();
@@ -72,15 +86,15 @@ function refreshTopCarousel() {
     $carousel_inner.find(".carousel-item").remove();
     let size = CURRENT_THEME.carousel.length;
     for (let i = 0; i < size; i++) {
-        var newItem = $template.clone(true)
+        let newItem = $template.clone(true)
             .attr("class", "carousel-item")
             .appendTo($carousel_inner);
 
         newItem.children("img.carousel-picture").each(function (idx, value) {
-            value.src = CURRENT_THEME.carousel[i++];
+            value.src = CURRENT_THEME.carousel[i];
         });
     }
-    newItem.addClass("active");
+    $carousel_inner.children(".carousel-item").first().addClass("active");
 }
 
 function refreshGalleryCarousel() {
@@ -124,11 +138,15 @@ function switchTo() {
     $("#description-container").slideUp(function () {
         currentActive.hide();
 
-        $("#top-carousel .carousel-inner").fadeOut("slow", function () {
-            refreshTopCarousel();
-        }).fadeIn("slow");
+        try {
+            $("#top-carousel .carousel-inner").fadeOut("slow", function () {
+                refreshTopCarousel();
+            }).fadeIn("slow");
 
-        refreshGalleryCarousel();
+            refreshGalleryCarousel();
+        } catch (e) {
+            console.error(e);
+        }
 
         $("#" + targetId).show();
     }).slideDown();
