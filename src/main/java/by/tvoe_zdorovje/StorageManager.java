@@ -67,7 +67,7 @@ public class StorageManager {
 
         Page<Blob> blobPage = bucket.list(Storage.BlobListOption.prefix(resource));
 
-        int initCapacity = 125; // average number of images for the near future [ 01-2021 ] ( actual ~100 )
+        int initCapacity = 150; // average number of images for the near future [ 01-2021 ] ( actual ~130 )
         ArrayList<String> carouselLinks = new ArrayList<>();
         ArrayList<String> galleryLinks = new ArrayList<>(initCapacity);
 
@@ -106,41 +106,26 @@ public class StorageManager {
 
         String prefix = filenameBuilder.toString();
 
-        String path = StorageManager.class.getResource("").getPath();
-        path = path.substring(0, path.indexOf("WEB-INF"));
-        File watermark = new File(path + "resources/internal/images/watermark.png");
         for (JSONObject file : files) {
-            byte[] bytes = addWatermark(Base64.decode(file.getString("Base64Content")), watermark);
 
             filenameBuilder.append(theme)
                     .append("-");
             LocalDate date = LocalDate.now(ZoneOffset.ofHours(3)); // UTC+3
             filenameBuilder.append(date).append("-").append(System.currentTimeMillis() % 10000000);
+            String filename = filenameBuilder.toString();
+            filenameBuilder.delete(prefix.length(), filenameBuilder.length());
 
-            bucket.create(filenameBuilder.toString(), bytes, file.getString("ContentType"), Bucket.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ));
-            Thread.sleep(2);
+            LOGGER.info("processing " + filename);
+
+            byte[] bytes = Base64.decode(file.getString("Base64Content"));
+            bytes = ImageProcessor.process(bytes, true);
+
+
+            bucket.create(filename, bytes, "image/jpeg", Bucket.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ));
+            Thread.sleep(2); // to another value in name
         }
 
         CACHE.remove(prefix);
-    }
-
-    private static byte[] addWatermark(byte[] fileBytes, File watermarkFile) throws IOException {
-        LOGGER.info("\tAdd watermark");
-
-        BufferedImage image = ImageIO.read(new ByteArrayInputStream(fileBytes));
-        BufferedImage watermark = ImageIO.read(watermarkFile);
-
-        Graphics2D g2d = (Graphics2D) image.getGraphics();
-        AlphaComposite alphaChannel = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
-        g2d.setComposite(alphaChannel);
-
-        g2d.drawImage(watermark, 0, 0, null);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(image, "jpg", baos);
-        g2d.dispose();
-
-        return baos.toByteArray();
     }
 
     public static String getPassword() {
