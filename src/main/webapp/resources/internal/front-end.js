@@ -14,6 +14,14 @@ $(function () {
     });
 
     init();
+
+    $("#picture-viewer-carousel").on("slide.bs.carousel", function (event) {
+        let $carousel = $(this);
+        let $current = $carousel.find(".active");
+        let $target = $(event.relatedTarget);
+        $carousel.animate({height:$target.height()+'px'});
+        $current.slideUp().slideDown();
+    });
 });
 
 function init() {
@@ -186,7 +194,7 @@ function zoomIn() {
 
     function addItem(img, active) {
         let item = $("<div class='carousel-item " + active + "'></div>").appendTo($carousel);
-        img.clone().attr("class", "img-fluid").appendTo(item);
+        img.clone().attr("class", "img-fluid zoomed").appendTo(item);
     }
 
     let $target = $(this);
