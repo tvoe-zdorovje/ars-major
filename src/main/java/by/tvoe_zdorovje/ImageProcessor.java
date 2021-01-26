@@ -1,9 +1,7 @@
 package by.tvoe_zdorovje;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
+import javax.imageio.*;
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -13,13 +11,15 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Iterator;
 
 public class ImageProcessor {
-    private static final int MAX_WIDTH = 1152; // ____ max width in gallery 1140px
-    private static final int MAX_HEIGHT = 864; // _/
-    private static BufferedImage WATERMARK;
 
-    // for manual processing of existing images
-    // args[0] - path to the folder with images; args[1] - watermark
+    /**
+     * For manual processing of existing images. Saves processed images to '../processed/*' .
+     *
+     * @param args [0] - path to the folder with images;
+     * args [1] - watermark;
+     **/
     public static void main(String[] args) throws IOException {
+        ImageProcessor processor = new ImageProcessor(args[1]);
         Path inputDir = Paths.get(args[0]);
         FileVisitor<Path> visitor = new SimpleFileVisitor<>() {
             private final String outputDir = inputDir.getParent() + "/processed/";
@@ -33,8 +33,7 @@ public class ImageProcessor {
 
                 try (FileInputStream inputStream = new FileInputStream(file.toFile());
                      FileOutputStream outputStream = new FileOutputStream(outputPath.toFile())) {
-                    byte[] img = inputStream.readAllBytes();
-                    img = process(img, false);
+                    byte[] img = processor.process(inputStream, false, true);
                     outputStream.write(img);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -46,12 +45,55 @@ public class ImageProcessor {
         Files.walkFileTree(inputDir, visitor);
     }
 
-    public static byte[] process(byte[] image, boolean watermark) throws IOException {
-        BufferedImage original = ImageIO.read(new ByteArrayInputStream(image));
-        BufferedImage scaled = scale(original);
+
+    private static final int MAX_WIDTH = 1152; // ____ max width in gallery 1140px
+    private static final int MAX_HEIGHT = 864; // _/
+    private static final float DEFAULT_COMPRESSION_QUALITY = 0.7f;
+
+    private final BufferedImage WATERMARK;
+    private float compressionQuality = DEFAULT_COMPRESSION_QUALITY;
+
+
+    public ImageProcessor(String path) throws IOException {
+        WATERMARK = ImageIO.read(new FileInputStream(path));
+    }
+
+    // prod
+    public ImageProcessor() throws IOException {
+        String path = ImageProcessor.class.getResource("").getPath();
+        path = path.substring(0, path.indexOf("WEB-INF")) + "resources/internal/images/watermark.png";
+        WATERMARK = ImageIO.read(new FileInputStream(path));
+    }
+
+    /**
+     * Resizes images, compresses and adds a watermark
+     *
+     * @param imgInputStream  - byte array of image;
+     * @param watermark - is a watermark required;
+     * @param manually  - manual image processing uses an algorithm that produces a smoother, smaller image, but requires much more RAM.
+     * @return a {@code byte[]} of processed image.
+     **/
+
+    public byte[] process(InputStream imgInputStream, boolean watermark, boolean manually) throws IOException {
+        if (imgInputStream.available()==0) throw new IllegalStateException("Input Stream is empty.");
+        BufferedImage scaled;
+        if (manually) {
+            BufferedImage original = ImageIO.read(imgInputStream);
+            int height = original.getHeight(), width = original.getWidth();
+            scaled = scale(original, height, width);
+            evaluateQuality(Math.max(height, width));
+
+            original.flush();
+            original = null;
+
+            Runtime.getRuntime().gc();
+        } else {
+            scaled = scale(imgInputStream);
+        }
 
         if (watermark) {
             addWatermark(scaled);
+            Runtime.getRuntime().gc();
         }
 
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
@@ -63,18 +105,10 @@ public class ImageProcessor {
             ImageWriter writer = writers.next();
             writer.setOutput(ios);
 
-            float quality = 0.75f;
-            int resolution = Math.max(original.getHeight(), original.getWidth());
-
-            if (resolution >= 1280) quality+=0f;
-            else if (resolution >= 1024) quality+= 0.05f;
-            else if (resolution >= 960) quality+= 0.01f;
-            else quality+= 0.02f;
-
             ImageWriteParam param = writer.getDefaultWriteParam();
             param.setProgressiveMode(ImageWriteParam.MODE_DEFAULT);
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            param.setCompressionQuality(quality);
+            param.setCompressionQuality(compressionQuality);
 
             writer.write(null, new IIOImage(scaled, null, null), param);
 
@@ -82,8 +116,41 @@ public class ImageProcessor {
         }
     }
 
-    private static BufferedImage scale(BufferedImage original) {
-        int height = original.getHeight(), width = original.getWidth();
+    // https://stackoverflow.com/questions/3294388/make-a-bufferedimage-use-less-ram
+    public BufferedImage scale(InputStream imgInputStream) throws IOException {
+        try (ImageInputStream inputStream = ImageIO.createImageInputStream(imgInputStream)) {
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
+
+            if (!readers.hasNext()) {
+                throw new IOException("No reader available for supplied image stream.");
+            }
+
+            ImageReader reader = readers.next();
+
+            ImageReadParam imageReaderParams = reader.getDefaultReadParam();
+            reader.setInput(inputStream);
+
+            Dimension d1 = new Dimension(reader.getWidth(0), reader.getHeight(0));
+            Dimension d2 = new Dimension(MAX_WIDTH, MAX_HEIGHT);
+
+            int subsampling = 1;
+
+            if (d1.getWidth() > d2.getWidth()) {
+                subsampling = (int) Math.round(d1.getWidth() / d2.getWidth());
+            } else if (d1.getHeight() > d2.getHeight()) {
+                subsampling = (int) Math.round(d1.getHeight() / d2.getHeight());
+            }
+
+            imageReaderParams.setSourceSubsampling(subsampling, subsampling, 0, 0);
+            BufferedImage scaled = reader.read(0, imageReaderParams);
+
+            evaluateQuality(Math.max(reader.getHeight(0), reader.getWidth(0)));
+
+            return scaled;
+        }
+    }
+
+    private BufferedImage scale(BufferedImage original, int height, int width) {
         float scale;
         if (height <= MAX_HEIGHT && width <= MAX_WIDTH) {
             scale = 1f;
@@ -107,10 +174,15 @@ public class ImageProcessor {
         return result;
     }
 
+    private void evaluateQuality(int resolution) {
+        compressionQuality = DEFAULT_COMPRESSION_QUALITY;
+        if (resolution >= 1280) compressionQuality += 0f;
+        else if (resolution >= 1024) compressionQuality += 0.05f;
+        else if (resolution >= 960) compressionQuality += 0.1f;
+        else compressionQuality += 0.2f;
+    }
 
-    private static void addWatermark(BufferedImage image) throws IOException {
-        initWatermark();
-
+    private void addWatermark(BufferedImage image) throws IOException {
         int imgWidth = image.getWidth(), imgHeight = image.getHeight();
         float watermarkScaleFactor = 7f;
         int watermarkWidth = Math.round(imgWidth / watermarkScaleFactor);
@@ -133,13 +205,5 @@ public class ImageProcessor {
                 null);
 
         g2d.dispose();
-    }
-
-    private static synchronized void initWatermark() throws IOException {
-        if (WATERMARK == null) {
-            String path = ImageProcessor.class.getResource("").getPath();
-            path = path.substring(0, path.indexOf("WEB-INF")) + "resources/internal/images/watermark.png";
-            WATERMARK = ImageIO.read(new FileInputStream(path));
-        }
     }
 }

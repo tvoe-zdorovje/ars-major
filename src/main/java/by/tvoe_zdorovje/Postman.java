@@ -31,7 +31,9 @@ public class Postman {
         MailjetRequest request = new MailjetRequest(Emailv31.resource)
                 .property(Emailv31.MESSAGES, new JSONArray()
                         .put(buildMessage(fields, files)));
-
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+        }
         MailjetResponse response = client.post(request);
 
         int status = response.getStatus();

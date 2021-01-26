@@ -7,15 +7,8 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.mailjet.client.Base64;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -97,35 +90,32 @@ public class StorageManager {
         return blob.getMediaLink();
     }
 
-    // TODO implement compression
-    public static void uploadResources(String theme, List<JSONObject> files) throws InterruptedException, IOException {
-        LOGGER.info("Upload resources..");
+    public static int uploadResources(String theme, byte[] img) throws InterruptedException, IOException {
+        LOGGER.info("Upload image...");
+
         StringBuilder filenameBuilder = new StringBuilder("resources/images/")
                 .append(theme)
                 .append("/");
 
         String prefix = filenameBuilder.toString();
 
-        for (JSONObject file : files) {
+        Thread.sleep(2); // for another value in the name
+        LocalDate date = LocalDate.now(ZoneOffset.ofHours(3)); // UTC+3
+        filenameBuilder
+                .append(theme)
+                .append("-")
+                .append(date)
+                .append("-")
+                .append(System.currentTimeMillis() % 10000000);
 
-            filenameBuilder.append(theme)
-                    .append("-");
-            LocalDate date = LocalDate.now(ZoneOffset.ofHours(3)); // UTC+3
-            filenameBuilder.append(date).append("-").append(System.currentTimeMillis() % 10000000);
-            String filename = filenameBuilder.toString();
-            filenameBuilder.delete(prefix.length(), filenameBuilder.length());
+        String filename = filenameBuilder.toString();
+        bucket.create(filename, img, "image/jpeg", Bucket.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ));
 
-            LOGGER.info("processing " + filename);
-
-            byte[] bytes = Base64.decode(file.getString("Base64Content"));
-            bytes = ImageProcessor.process(bytes, true);
-
-
-            bucket.create(filename, bytes, "image/jpeg", Bucket.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ));
-            Thread.sleep(2); // to another value in name
-        }
-
+        filenameBuilder.delete(prefix.length(), filenameBuilder.length());
         CACHE.remove(prefix);
+
+        LOGGER.info("Image uploaded: " + filename);
+        return 1;
     }
 
     public static String getPassword() {

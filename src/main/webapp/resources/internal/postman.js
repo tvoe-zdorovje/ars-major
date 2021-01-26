@@ -45,6 +45,7 @@ function submitMail() {
 }
 
 let adminMode = "";
+let token = "";
 
 function uploadImages($form) {
     // second check
@@ -68,7 +69,7 @@ function uploadImages($form) {
             "    </select>" +
             "  </div>").appendTo($form);
 
-        adminMode = "?admin=false";
+        adminMode = "admin=false";
         return 0;
     }
 
@@ -84,21 +85,27 @@ function uploadImages($form) {
         }
     });
 
-    // ---------------- verification request -----------------
     if (isValid) {
-        if (adminMode === "?admin=true") {
-            send($form);
+        let theme = "theme=" + $form.find("#form-selector").val();
+
+        // ---------------- push -----------------
+        if (adminMode === "admin=true" && token && token.length > 0) {
+            send($form, theme);
             return 0;
         }
+
+        // ---------------- verification request and push -----------------
         $.ajax({
             type: "POST",
-            url: window.location.pathname + adminMode,
+            url: window.location.pathname + "?" + adminMode,
             data: $form.find("#form-password").val(),
             contentType: "plain/text"
         })
-            .done(function () {
-                adminMode = "?admin=true"
-                send($form);
+            .done(function (xhr) {
+                adminMode = "admin=true"
+                token = "token=" + xhr;
+                $form.find("#form-password").parent("div").remove();
+                send($form, theme);
             })
             .fail(function (xhr) {
                 let msg;
@@ -113,7 +120,7 @@ function uploadImages($form) {
     return 0;
 }
 
-function send($form) {
+function send($form, theme) {
     let $button = $form.siblings("#form-submit")
         .attr("disabled", "true");
     let btnText = $button.text();
@@ -122,27 +129,30 @@ function send($form) {
     let formData = new FormData($form[0]);
     $.ajax({
         type: "POST",
-        url: window.location.pathname + adminMode,
+        url: window.location.pathname + "?" + adminMode + "&" + token + "&" + theme,
         data: formData,
         contentType: false,
         processData: false
     })
-        .done(function () {
-            if (!adminMode)
+        .done(function (xhr) {
+            if (!adminMode) {
                 $form[0].reset();
-            else {
+                showNoty("alert", "Отправлено!");
+            } else {
                 $form.find("#form-password").val("");
                 $form.find("#form-selector").find("#form-selector-default").prop("selected", true);
+                showNoty("alert", "Загружено " + xhr + " файлов.");
             }
 
-            showNoty("alert", "Отправлено!");
         })
         .fail(function (xhr) {
-            let msg;
-            if (xhr.status === 403)
-                msg = "Неверный пароль!"
-            else
-                msg = "Произошла ошибка!"
+            let msg = "Произошла ошибка!"
+            if (adminMode) {
+                if (xhr.status === 403)
+                    msg = "Сессия устарела. Обновите страницу и попробуйте еще раз."
+                else if (xhr.status === 500)
+                    msg = msg + " Загружено " + xhr.responseText + " файлов."
+            }
             showNoty("error", msg);
         })
         .always(function () {
