@@ -2,10 +2,7 @@
 target
 
 # Photo
-/src/main/webapp/resources/images/
-
-#gapi token
-ars-major-token.json
+**/src/main/webapp/resources/images/
 
 # Compiled class file
 *.class

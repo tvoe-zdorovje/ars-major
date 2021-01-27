@@ -70,7 +70,10 @@ public class ImageProcessor {
      *
      * @param imgInputStream  - byte array of image;
      * @param watermark - is a watermark required;
-     * @param manually  - manual image processing uses an algorithm that produces a smoother, smaller image, but requires much more RAM.
+     * @param manually  - chooses which algorithm to use. Use 'false' for production.
+     * @see ImageProcessor#scale(InputStream)
+     * @see ImageProcessor#scale(BufferedImage, int, int)
+     *
      * @return a {@code byte[]} of processed image.
      **/
 
@@ -116,7 +119,11 @@ public class ImageProcessor {
         }
     }
 
-    // https://stackoverflow.com/questions/3294388/make-a-bufferedimage-use-less-ram
+    /**
+     * Uses an algorithm that produces a less smooth, larger image, but requires much less RAM.
+     * @see ImageProcessor#scale(BufferedImage, int, int)
+     * @see <a href='https://stackoverflow.com/questions/3294388/make-a-bufferedimage-use-less-ram'></a>
+     **/
     public BufferedImage scale(InputStream imgInputStream) throws IOException {
         try (ImageInputStream inputStream = ImageIO.createImageInputStream(imgInputStream)) {
             Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
@@ -150,6 +157,10 @@ public class ImageProcessor {
         }
     }
 
+    /**
+     * Uses an algorithm that produces a smoother, smaller image, but requires much more RAM. Do not use for production!
+     * @see ImageProcessor#scale(InputStream)
+     **/
     private BufferedImage scale(BufferedImage original, int height, int width) {
         float scale;
         if (height <= MAX_HEIGHT && width <= MAX_WIDTH) {

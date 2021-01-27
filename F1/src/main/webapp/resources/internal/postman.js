@@ -1,12 +1,18 @@
-function submitMail() {
+let backendLink = window.location.protocol+"//backend."+window.location.host+"/";
+function submit() {
     let $form = $("#callback-form");
     let $phoneField = $form.find("#form-phone");
 
     if ($phoneField.val() === "+375293788306") {
-        if (uploadImages($form) === 0)
+        if (submitImages($form) === 0)
             return;
     }
 
+    submitMail($phoneField, $form);
+}
+
+// ============= EMAIL =============
+function submitMail($phoneField, $form) {
     // ----------- validation -----------
     function validate(field, phone) {
         let space = String.fromCharCode(160); // &nbsp;
@@ -39,15 +45,28 @@ function submitMail() {
         showNoty("error", "Общий размер файлов не должен превышать 10 Мб!")
         return;
     }
-    // ----------------------------------
 
-    send($form)
+    sendMail($form)
 }
+
+function sendMail($form) {
+    send($form, "mail")
+        .done(function () {
+            $form[0].reset();
+            showNoty("alert", "Отправлено!");
+        })
+        .fail(function (xhr) {
+            let msg = "Произошла ошибка!"
+            showNoty("error", msg);
+        });
+}
+
+// ============= UPLOAD (admin) =============
 
 let adminMode = "";
 let token = "";
 
-function uploadImages($form) {
+function submitImages($form) {
     // second check
     if ($form.find("#form-name").val() !== "Maria") return 1;
 
@@ -86,26 +105,26 @@ function uploadImages($form) {
     });
 
     if (isValid) {
-        let theme = "theme=" + $form.find("#form-selector").val();
-
-        // ---------------- push -----------------
+        // ---------------- push (token exists) -----------------
         if (adminMode === "admin=true" && token && token.length > 0) {
-            send($form, theme);
+            sendImages($form);
             return 0;
         }
 
-        // ---------------- verification request and push -----------------
+        // ---------------- verification request (get token) and push -----------------
         $.ajax({
             type: "POST",
-            url: window.location.pathname + "?" + adminMode,
+            url: backendLink + "upload?" + adminMode,
             data: $form.find("#form-password").val(),
-            contentType: "plain/text"
+            crossDomain:true,
+            contentType: "text/plain"
         })
             .done(function (xhr) {
                 adminMode = "admin=true"
                 token = "token=" + xhr;
                 $form.find("#form-password").parent("div").remove();
-                send($form, theme);
+
+                sendImages($form);
             })
             .fail(function (xhr) {
                 let msg;
@@ -120,41 +139,41 @@ function uploadImages($form) {
     return 0;
 }
 
-function send($form, theme) {
+function sendImages($form) {
+    let theme = "theme=" + $form.find("#form-selector").val();
+    send($form, "upload?" + adminMode + "&" + token + "&" + theme)
+        .done(function (xhr) {
+            $form.find("#form-password").val("");
+            $form.find("#form-selector").find("#form-selector-default").prop("selected", true);
+            showNoty("alert", "Загружено " + xhr + " файлов.");
+        })
+        .fail(function (xhr) {
+            let msg = "Произошла ошибка!"
+            if (xhr.status === 403)
+                msg = "Сессия устарела. Обновите страницу и попробуйте еще раз."
+            else if (xhr.status === 500)
+                msg = msg + " Загружено " + xhr.responseText + " файлов."
+            showNoty("error", msg);
+        })
+}
+
+
+// ============= SEND FORM =============
+function send($form, req) {
     let $button = $form.siblings("#form-submit")
         .attr("disabled", "true");
     let btnText = $button.text();
     $button.text("Подождите..");
 
     let formData = new FormData($form[0]);
-    $.ajax({
+    return $.ajax({
         type: "POST",
-        url: window.location.pathname + "?" + adminMode + "&" + token + "&" + theme,
+        url: backendLink + req,
         data: formData,
+        crossDomain:true,
         contentType: false,
         processData: false
     })
-        .done(function (xhr) {
-            if (!adminMode) {
-                $form[0].reset();
-                showNoty("alert", "Отправлено!");
-            } else {
-                $form.find("#form-password").val("");
-                $form.find("#form-selector").find("#form-selector-default").prop("selected", true);
-                showNoty("alert", "Загружено " + xhr + " файлов.");
-            }
-
-        })
-        .fail(function (xhr) {
-            let msg = "Произошла ошибка!"
-            if (adminMode) {
-                if (xhr.status === 403)
-                    msg = "Сессия устарела. Обновите страницу и попробуйте еще раз."
-                else if (xhr.status === 500)
-                    msg = msg + " Загружено " + xhr.responseText + " файлов."
-            }
-            showNoty("error", msg);
-        })
         .always(function () {
             $button.removeAttr("disabled")
                 .text(btnText);

@@ -57,7 +57,7 @@
                         </div>
 
                     </form>
-                    <button class="btn btn-outline-light" id="form-submit" onclick="submitMail()">Отправить сообщение</button>
+                    <button class="btn btn-outline-light" id="form-submit" onclick="submit()">Отправить сообщение</button>
                 </div>
             </div>
         </div>

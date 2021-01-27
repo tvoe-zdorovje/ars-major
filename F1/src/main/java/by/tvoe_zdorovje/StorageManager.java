@@ -10,8 +10,6 @@ import com.google.cloud.storage.StorageOptions;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +25,6 @@ public class StorageManager {
     private static Bucket bucket;
 
     private static final Map<String, String> CACHE = new HashMap<>(5);
-    private static final Map<String, String> ENV_VARs = new HashMap<>();
 
     static {
         try {
@@ -41,18 +38,13 @@ public class StorageManager {
         }
     }
 
-    private static Map<String, String> getEnvVars() {
-        if (ENV_VARs.size() == 0) {
-            LOGGER.info("Load ENV_VARs metadata.");
-            ENV_VARs.putAll(bucket.get("ENV_VARs").getMetadata());
-        }
-        return ENV_VARs;
-    }
-
     public static String getMediaLinks(String resource) {
         LOGGER.info("[GET] media links: " + resource);
 
-        String cached = CACHE.get(resource);
+        String cached;
+        synchronized (CACHE) {
+            cached = CACHE.get(resource);
+        }
         if (null != cached && !cached.isBlank()) {
             LOGGER.info("get [" + resource + "] from cache");
             return cached;
@@ -90,51 +82,12 @@ public class StorageManager {
         return blob.getMediaLink();
     }
 
-    public static int uploadResources(String theme, byte[] img) throws InterruptedException, IOException {
-        LOGGER.info("Upload image...");
-
-        StringBuilder filenameBuilder = new StringBuilder("resources/images/")
+    public static void invalidateCache(String theme) {
+        StringBuilder prefix = new StringBuilder("resources/images/")
                 .append(theme)
                 .append("/");
-
-        String prefix = filenameBuilder.toString();
-
-        Thread.sleep(2); // for another value in the name
-        LocalDate date = LocalDate.now(ZoneOffset.ofHours(3)); // UTC+3
-        filenameBuilder
-                .append(theme)
-                .append("-")
-                .append(date)
-                .append("-")
-                .append(System.currentTimeMillis() % 10000000);
-
-        String filename = filenameBuilder.toString();
-        bucket.create(filename, img, "image/jpeg", Bucket.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ));
-
-        filenameBuilder.delete(prefix.length(), filenameBuilder.length());
-        CACHE.remove(prefix);
-
-        LOGGER.info("Image uploaded: " + filename);
-        return 1;
-    }
-
-    public static String getPassword() {
-        return getEnvVars().get("PASS");
-    }
-
-    public static String getMailjetKey() {
-        return getEnvVars().get("MJ_KEY");
-    }
-
-    public static String getMailjetValue() {
-        return getEnvVars().get("MJ_VALUE");
-    }
-
-    public static String getMailjetFrom() {
-        return getEnvVars().get("MJ_FROM");
-    }
-
-    public static String getMailjetTo() {
-        return getEnvVars().get("MJ_TO");
+        synchronized (CACHE) {
+            CACHE.remove(prefix.toString());
+        }
     }
 }

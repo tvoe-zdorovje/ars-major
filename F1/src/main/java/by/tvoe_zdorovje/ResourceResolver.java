@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 public class ResourceResolver extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger("ResourceResolver");
 
+    /**
+     * Returns media links to images
+     **/
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setCharacterEncoding("UTF-8");
@@ -33,6 +36,19 @@ public class ResourceResolver extends HttpServlet {
         } catch (Exception e) {
             resp.sendError(500, "Что-то пошло не так...");
             LOGGER.log(Level.WARNING, "Something went wrong.", e);
+        } finally {
+            System.gc();
         }
+    }
+
+    /**
+     * Invalidates the cache
+     **/
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String theme = req.getParameter("theme");
+        LOGGER.info("Invalidate cache: " + theme);
+        StorageManager.invalidateCache(theme);
     }
 }

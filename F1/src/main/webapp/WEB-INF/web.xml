@@ -8,7 +8,7 @@
 
     <servlet>
         <servlet-name>General</servlet-name>
-        <servlet-class>by.tvoe_zdorovje.General</servlet-class>
+        <jsp-file>/WEB-INF/ars_major.jsp</jsp-file>
     </servlet>
     <servlet-mapping>
         <servlet-name>General</servlet-name>

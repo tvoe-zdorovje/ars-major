@@ -10,6 +10,7 @@
     </system-properties>
  <automatic-scaling>
     <min-instances>1</min-instances>
-    <max-instances>1</max-instances>
+    <max-instances>2</max-instances>
+     <max-idle-instances>1</max-idle-instances>
   </automatic-scaling>
 </appengine-web-app>
